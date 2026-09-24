@@ -32,6 +32,10 @@ void handle_command(int command)
     {
         log_version();
     }
+    else if (command == 'i')
+    {
+        device_info();
+    }
     else
     {
         LOG_ERR("unknown command: %c\n", command);
