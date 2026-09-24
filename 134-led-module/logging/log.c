@@ -1,3 +1,5 @@
+#include "log.h"
+
 void log_version(void)
 {
     printf("device: %s %s, built %s %s, log level %d\n",
