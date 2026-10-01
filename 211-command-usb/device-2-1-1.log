@@ -1,0 +1,89 @@
+задание: 2.1.1
+проект: 211-command-usb
+устройство: 2e8a:000a
+серийный номер: E66098F29B5BA332
+порт: COM11
+начало: 2026-10-01T16:37:04
+   0.000 --> enable
+   0.000 <-- dbg main:76 got e
+   0.000 <-- inf handle_command:25 led on
+   0.032 <-- dbg main:76 got n
+   0.032 <-- err handle_command:42 unknown command: n
+   0.047 <-- dbg main:76 got a
+   0.047 <-- err handle_command:42 unknown command: a
+   0.063 <-- dbg main:76 got b
+   0.063 <-- err handle_command:42 unknown command: b
+   0.079 <-- dbg main:76 got l
+   0.079 <-- err handle_command:42 unknown command: l
+   0.110 <-- dbg main:76 got e
+   0.110 <-- inf handle_command:25 led on
+   0.125 <-- dbg main:76 got
+   0.125 <-- err handle_command:42 unknown command:
+   2.141 --> disable
+   2.141 <-- dbg main:76 got d
+   2.141 <-- inf handle_command:30 led off
+   2.172 <-- dbg main:76 got i
+   2.172 <-- project: 211-command-usb
+   2.172 <-- repo: https://github.com/<�������� ����������>/es-student
+   2.172 <-- board: pico
+   2.172 <-- serial: E66098F29B5BA332
+   2.172 <-- chip: manufacturer 0x927, part 0x0002, revision 1
+   2.172 <-- pico-sdk: 2.3.0
+   2.188 <-- dbg main:76 got s
+   2.188 <-- err handle_command:42 unknown command: s
+   2.204 <-- dbg main:76 got a
+   2.204 <-- err handle_command:42 unknown command: a
+   2.235 <-- dbg main:76 got b
+   2.235 <-- err handle_command:42 unknown command: b
+   2.250 <-- dbg main:76 got l
+   2.250 <-- err handle_command:42 unknown command: l
+   2.266 <-- dbg main:76 got e
+   2.266 <-- inf handle_command:25 led on
+   2.282 <-- dbg main:76 got
+   2.282 <-- err handle_command:42 unknown command:
+   4.329 --> info
+   4.329 <-- dbg main:76 got i
+   4.329 <-- project: 211-command-usb
+   4.329 <-- repo: https://github.com/<�������� ����������>/es-student
+   4.329 <-- board: pico
+   4.329 <-- serial: E66098F29B5BA332
+   4.329 <-- chip: manufacturer 0x927, part 0x0002, revision 1
+   4.329 <-- pico-sdk: 2.3.0
+   4.344 <-- dbg main:76 got n
+   4.344 <-- err handle_command:42 unknown command: n
+   4.375 <-- dbg main:76 got f
+   4.375 <-- err handle_command:42 unknown command: f
+   4.391 <-- dbg main:76 got o
+   4.391 <-- err handle_command:42 unknown command: o
+   4.407 <-- dbg main:76 got
+   4.407 <-- err handle_command:42 unknown command:
+   6.454 --> nosuchcommand
+   6.469 <-- dbg main:76 got n
+   6.469 <-- err handle_command:42 unknown command: n
+   6.485 <-- dbg main:76 got o
+   6.485 <-- err handle_command:42 unknown command: o
+   6.516 <-- dbg main:76 got s
+   6.516 <-- err handle_command:42 unknown command: s
+   6.532 <-- dbg main:76 got u
+   6.532 <-- err handle_command:42 unknown command: u
+   6.547 <-- dbg main:76 got c
+   6.547 <-- err handle_command:42 unknown command: c
+   6.579 <-- dbg main:76 got h
+   6.579 <-- err handle_command:42 unknown command: h
+   6.594 <-- dbg main:76 got c
+   6.594 <-- err handle_command:42 unknown command: c
+   6.610 <-- dbg main:76 got o
+   6.610 <-- err handle_command:42 unknown command: o
+   6.625 <-- dbg main:76 got m
+   6.625 <-- err handle_command:42 unknown command: m
+   6.657 <-- dbg main:76 got m
+   6.657 <-- err handle_command:42 unknown command: m
+   6.672 <-- dbg main:76 got a
+   6.672 <-- err handle_command:42 unknown command: a
+   6.688 <-- dbg main:76 got n
+   6.688 <-- err handle_command:42 unknown command: n
+   6.719 <-- dbg main:76 got d
+   6.719 <-- inf handle_command:30 led off
+   6.735 <-- dbg main:76 got
+   6.735 <-- err handle_command:42 unknown command:
+итог: отправлено команд 4, принято строк 78
