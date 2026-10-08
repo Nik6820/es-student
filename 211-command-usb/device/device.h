@@ -15,9 +15,9 @@
 
 struct info_t
 {
-    uint8_t revision;    // 1 байт
-    uint32_t version;    // 4 байта
-    char name[13];       // 13 байт, длина числом!
+    uint32_t version;    // 4 байта — первым
+    char name[13];       // 13 байт — посередине
+    uint8_t revision;    // 1 байт — в хвост
 };
 
 extern struct info_t device_card; 
