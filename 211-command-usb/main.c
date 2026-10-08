@@ -8,15 +8,9 @@
 #include "device.h"
 #include <string.h>
 #include "memory.h"
+#include "command.h"
 
 #define LINE_SIZE 32
-typedef void (*command_handler_t)(void);
-
-struct command_t
-{
-    const char *name;
-    command_handler_t handler;
-};
 
 char line[LINE_SIZE];
 uint line_length = 0;
@@ -63,6 +57,11 @@ void cmd_mem_info(void)
     mem_info();
 }
      
+void cmd_fw_info(void)
+{
+    fw_info();
+}
+
 const struct command_t commands[] = {
     { "enable", cmd_enable },
     { "disable", cmd_disable },
@@ -70,13 +69,14 @@ const struct command_t commands[] = {
     { "version", cmd_version },
     { "ping", cmd_ping },
     { "mem_info", cmd_mem_info },
+    { "fw_info", cmd_fw_info },
 };
 
-#define COMMAND_COUNT (sizeof(commands) / sizeof(commands[0]))
+const uint command_count = sizeof(commands) / sizeof(commands[0]);
 
 void handle_command(const char *command)
 {
-    for (uint i = 0; i < COMMAND_COUNT; i++)
+    for (uint i = 0; i < command_count; i++)
     {
         if (strcmp(command, commands[i].name) == 0)
         {

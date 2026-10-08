@@ -1,13 +1,19 @@
 #include "memory.h"
-
+#include "command.h"
+#include "device.h"
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "pico/stdlib.h"
 #include "hardware/regs/addressmap.h"
 
-/* Символы линкера — это метки адресов, а не объекты.
-   Берём только их адрес через &, значение читать нельзя. */
+int main(void);
+
+uint32_t data_variable = 100;
+
+uint32_t bss_variable;
+
 extern char __flash_binary_start;
 extern char __flash_binary_end;
 extern char __boot2_start__;
@@ -32,7 +38,6 @@ static void row(const char *name, uintptr_t start, uintptr_t end)
 
 void mem_info(void)
 {
-    /* Границы регионов чипа — из SDK и datasheet */
     const uintptr_t flash_start = XIP_BASE;
     const uintptr_t flash_end   = XIP_BASE + PICO_FLASH_SIZE_BYTES;
     const uintptr_t sram_start  = SRAM_BASE;
@@ -40,7 +45,6 @@ void mem_info(void)
     const uintptr_t rom_start   = ROM_BASE;
     const uintptr_t rom_end     = ROM_BASE + 16u * 1024u;      /* 16 КБ Boot ROM */
 
-    /* Границы образа — из символов линкера */
     const uintptr_t image_start    = (uintptr_t)&__flash_binary_start;
     const uintptr_t image_end      = (uintptr_t)&__flash_binary_end;
     const uintptr_t boot2_start    = (uintptr_t)&__boot2_start__;
@@ -54,7 +58,6 @@ void mem_info(void)
     const uintptr_t stack_bottom   = (uintptr_t)&__StackBottom;
     const uintptr_t stack_top      = (uintptr_t)&__StackTop;
 
-    /* Размеры, которые встретятся не один раз */
     const uintptr_t data_size  = data_ram_end - data_ram_start;
     const uintptr_t boot2_size = boot2_end - boot2_start;
     const uintptr_t text_size  = etext - boot2_end;
@@ -97,4 +100,67 @@ void mem_info(void)
            "ram free",
            (unsigned)heap_size,
            (unsigned)stack_size);
+}
+
+void fw_info(void)
+{
+    data_variable++;
+    bss_variable++;
+
+    uint32_t stack_variable = 1946;
+
+    uint32_t *heap_variable = (uint32_t *)malloc(sizeof(uint32_t));
+    if (heap_variable != NULL)
+    {
+        *heap_variable = 1951;
+    }
+
+    uint16_t *main_code    = (uint16_t *)((uintptr_t)main & ~(uintptr_t)1u);
+    uint16_t *fw_info_code = (uint16_t *)((uintptr_t)fw_info & ~(uintptr_t)1u);
+
+    printf("object          address     value\n");
+
+    printf("main            0x%08x  0x%04x\n",
+           (unsigned)(uintptr_t)main,
+           (unsigned)*main_code);
+
+    printf("fw_info         0x%08x  0x%04x\n",
+           (unsigned)(uintptr_t)fw_info,
+           (unsigned)*fw_info_code);
+
+    printf("commands        0x%08x\n",
+           (unsigned)(uintptr_t)commands);
+
+    for (uint i = 0; i < command_count; i++)
+    {
+        printf("- %-12s 0x%08x\n",
+               commands[i].name,
+               (unsigned)(uintptr_t)commands[i].handler);
+    }
+
+    printf("DEVICE_PROJECT  0x%08x  %s\n",
+           (unsigned)(uintptr_t)DEVICE_PROJECT,
+           DEVICE_PROJECT);
+
+    printf("DEVICE_BOARD    0x%08x  %s\n",
+           (unsigned)(uintptr_t)DEVICE_BOARD,
+           DEVICE_BOARD);
+
+    printf("data_variable   0x%08x  %u\n",
+           (unsigned)(uintptr_t)&data_variable,
+           (unsigned)data_variable);
+
+    printf("bss_variable    0x%08x  %u\n",
+           (unsigned)(uintptr_t)&bss_variable,
+           (unsigned)bss_variable);
+
+    printf("stack_variable  0x%08x  %u\n",
+           (unsigned)(uintptr_t)&stack_variable,
+           (unsigned)stack_variable);
+
+    printf("heap_variable   0x%08x  %u\n",
+           (unsigned)(uintptr_t)heap_variable,
+           heap_variable != NULL ? (unsigned)*heap_variable : 0u);
+
+    free(heap_variable);
 }
