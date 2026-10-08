@@ -115,8 +115,8 @@ void fw_info(void)
         *heap_variable = 1951;
     }
 
-    uint16_t *main_code    = (uint16_t *)((uintptr_t)main & ~(uintptr_t)1u);
-    uint16_t *fw_info_code = (uint16_t *)((uintptr_t)fw_info & ~(uintptr_t)1u);
+    uint16_t *main_code    = (uint16_t *)((uintptr_t)main & ~1u);
+    uint16_t *fw_info_code = (uint16_t *)((uintptr_t)fw_info & ~1u);
 
     printf("object          address     value\n");
 
