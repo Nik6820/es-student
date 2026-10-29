@@ -9,6 +9,8 @@ project(231_firmware_template)
 
 pico_sdk_init()
 
+add_compile_options(-Wall)
+
 add_executable(${PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/main.c
     ${CMAKE_CURRENT_SOURCE_DIR}/logging/log.c
@@ -16,7 +18,7 @@ add_executable(${PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/profiling/profiling.c
     ${CMAKE_CURRENT_SOURCE_DIR}/stdio-text-protocol/stdio-text-protocol.c
     ${CMAKE_CURRENT_SOURCE_DIR}/api/api.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/led-task/led-task.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/led-task/led-task.c
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
