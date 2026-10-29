@@ -1,31 +1,29 @@
 #include "device.h"
-#include <stddef.h>
+
+#include "pico/stdlib.h"
 #include "pico/version.h"
-#include <stdio.h>
 #include "pico/unique_id.h"
-#include "hardware/regs/addressmap.h"
-#include "hardware/regs/sysinfo.h"
+#include <string.h>
 
-void device_info(void)
+void device_get_info(device_info_t *info)
 {
-    char board_id[PICO_UNIQUE_BOARD_ID_SIZE_BYTES * 2 + 1];
-    pico_get_unique_board_id_string(board_id, sizeof(board_id));
+    if (info == NULL) return;
 
-    volatile uint32_t *chip_id = (uint32_t *)(SYSINFO_BASE + SYSINFO_CHIP_ID_OFFSET);
-    uint32_t id = *chip_id;
+    /* Тип платы */
+    strncpy(info->board, DEVICE_BOARD, sizeof(info->board) - 1);
+    info->board[sizeof(info->board) - 1] = '\0';
 
-    uint32_t manufacturer = (id & SYSINFO_CHIP_ID_MANUFACTURER_BITS) >> SYSINFO_CHIP_ID_MANUFACTURER_LSB;
-    uint32_t part         = (id & SYSINFO_CHIP_ID_PART_BITS)         >> SYSINFO_CHIP_ID_PART_LSB;
-    uint32_t revision     = (id & SYSINFO_CHIP_ID_REVISION_BITS)     >> SYSINFO_CHIP_ID_REVISION_LSB;
+    /* Серийный номер: 16 hex-цифр + \0 */
+    pico_get_unique_board_id_string(info->serial, sizeof(info->serial));
 
-    printf("name: %s\n", DEVICE_NAME);
-    printf("version: %s\n", FIRMWARE_VERSION);
-    printf("project: %s\n", DEVICE_PROJECT);
-    printf("repo: %s\n", DEVICE_REPO);
-    printf("board: %s\n", DEVICE_BOARD);
-    printf("serial: %s\n", board_id);
-    printf("chip: manufacturer 0x%03x, part 0x%04x, revision %u\n",
-           manufacturer, part, revision);
-    printf("pico-sdk: %s\n", PICO_SDK_VERSION_STRING
-);
+    /* CHIP_ID: производитель 3 hex, изделие 4 hex, ревизия dec */
+    uint32_t chip_id   = *(volatile uint32_t *)0x40000000u;
+    info->manufacturer =  chip_id         & 0xFFFu;
+    info->part         = (chip_id >> 12)  & 0xFFFFu;
+    info->revision     = (chip_id >> 28)  & 0xFu;
+
+    /* Версия SDK */
+    strncpy(info->sdk_version, PICO_SDK_VERSION_STRING,
+            sizeof(info->sdk_version) - 1);
+    info->sdk_version[sizeof(info->sdk_version) - 1] = '\0';
 }

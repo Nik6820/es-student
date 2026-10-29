@@ -14,6 +14,7 @@
 #include "led-task.h"
 #include "button-task.h"
 #include "pi-task.h"
+#include "profiling.h"
 
 #define DEFAULT_PI_TERMS 1000000
 
@@ -165,29 +166,56 @@ static void cmd_pi(const command_t *c)
     }
     }
 }
+
+static void cmd_profiling(const command_t *c)
+{
+    (void)c;
+
+    for (uint32_t i = 0; i < PROFILING_MAX_STOPWATCHES; i++)
+    {
+        profiling_result_t r;
+        if (!profiling_get(i, &r)) continue;
+
+        if (r.count == 0)
+        {
+            printf("%-10s count 0\n", r.name);
+            continue;
+        }
+
+        double mean = (double)r.sum_us / (double)r.count;
+        printf("%-10s count %u  mean %.2f us  max %u us\n",
+               r.name,
+               (unsigned)r.count,
+               mean,
+               (unsigned)r.max_us);
+    }
+}
+
+static void cmd_profiling_reset(const command_t *c)
+{
+    (void)c;
+    profiling_reset();
+    printf("profiling reset\n");
+}
+
 /* ---------- остальные обработчики ---------- */
 
 static void cmd_info(const command_t *c)
 {
     (void)c;
 
-    printf("name: %s\n", DEVICE_NAME);
-    printf("version: %s\n", FIRMWARE_VERSION);
+    device_info_t info;
+    device_get_info(&info);
 
-    device_info();
-
-    char serial[17];
-    pico_get_unique_board_id_string(serial, sizeof(serial));
-    printf("serial: %s\n", serial);
-
-    uint32_t chip_id = *(volatile uint32_t *)0x40000000u;
-    unsigned manufacturer =  chip_id         & 0xFFFu;
-    unsigned part         = (chip_id >> 12)  & 0xFFFFu;
-    unsigned revision     = (chip_id >> 28)  & 0xFu;
+    printf("name: %s\n",     DEVICE_NAME);
+    printf("version: %s\n",  FIRMWARE_VERSION);
+    printf("project: %s\n",  DEVICE_PROJECT);
+    printf("repo: %s\n",     DEVICE_REPO);
+    printf("board: %s\n",    info.board);
+    printf("serial: %s\n",   info.serial);
     printf("chip: manufacturer 0x%03x, part 0x%04x, revision %u\n",
-           manufacturer, part, revision);
-
-    printf("pico-sdk: %s\n", PICO_SDK_VERSION_STRING);
+           info.manufacturer, info.part, info.revision);
+    printf("pico-sdk: %s\n", info.sdk_version);
 }
 
 static void cmd_uptime(const command_t *c)
@@ -197,17 +225,6 @@ static void cmd_uptime(const command_t *c)
            (unsigned long long)(time_us_64() / 1000));
 }
 
-static void cmd_main_time_exec(const command_t *c)
-{
-    (void)c;
-    printf("main_time_exec: not implemented\n");
-}
-
-static void cmd_main_time_reset(const command_t *c)
-{
-    (void)c;
-    printf("main_time_reset: not implemented\n");
-}
 
 /* ---------- таблица ---------- */
 
@@ -215,8 +232,6 @@ static const api_command_t commands[] =
 {
     { "info",            "device passport",                            cmd_info },
     { "uptime",          "time since reset",                           cmd_uptime },
-    { "main_time_exec",  "superloop iteration: average and maximum",   cmd_main_time_exec },
-    { "main_time_reset", "reset maximum iteration",                    cmd_main_time_reset },
     { "led_enable",      "turn led on",                                cmd_led_enable },
     { "led_disable",     "turn led off",                               cmd_led_disable },
     { "led_blink",       "blink led",                                  cmd_led_blink },
@@ -224,6 +239,8 @@ static const api_command_t commands[] =
     { "button", "button state and press count", cmd_button },
     { "pi_start", "start pi calculation: pi_start [terms]", cmd_pi_start },
     { "pi",       "pi result or state",                    cmd_pi       },
+    { "profiling",       "stopwatch results",  cmd_profiling       },
+    { "profiling_reset", "reset stopwatches",  cmd_profiling_reset },
 };
 
 #define COMMAND_COUNT (sizeof(commands) / sizeof(commands[0]))
