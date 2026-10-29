@@ -12,6 +12,7 @@
 #include "pico/version.h"
 #include "pico/unique_id.h"
 #include "led-task.h"
+#include "button-task.h"
 
 /* ---------- тип записи таблицы ---------- */
 
@@ -94,6 +95,14 @@ static void cmd_led_period(const command_t *c)
     }
 
     print_led_state();
+}
+
+static void cmd_button(const command_t *c)
+{
+    (void)c;
+    printf("button: %s, presses %u\n",
+           button_task_is_pressed() ? "pressed" : "released",
+           (unsigned)button_task_get_press_count());
 }
 
 /* ---------- остальные обработчики ---------- */
@@ -194,6 +203,7 @@ static const api_command_t commands[] =
     { "led_disable",     "turn led off",                               cmd_led_disable },
     { "led_blink",       "blink led",                                  cmd_led_blink },
     { "led_period",      "set blink period: led_period <period_ms>",   cmd_led_period },
+    { "button", "button state and press count", cmd_button },
 };
 
 #define COMMAND_COUNT (sizeof(commands) / sizeof(commands[0]))

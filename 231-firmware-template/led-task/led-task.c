@@ -94,3 +94,9 @@ void led_task_handle(void)
         break;
     }
 }
+
+void led_task_next_state(void)
+{
+    led_state_t next = (led_state_t)((led_state + 1) % 3);
+    led_task_set_state(next);
+}
