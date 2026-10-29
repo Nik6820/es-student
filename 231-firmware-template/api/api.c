@@ -1,6 +1,5 @@
 #include "api.h"
 #include "device.h"
-#include "led.h"
 #include "log.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +11,7 @@
 #include "pico/stdlib.h"
 #include "pico/version.h"
 #include "pico/unique_id.h"
+#include "led-task.h"
 
 /* ---------- тип записи таблицы ---------- */
 
@@ -43,7 +43,60 @@ static bool parse_u32(const char *text, uint32_t *out)
     return true;
 }
 
-/* ---------- обработчики ---------- */
+/* ---------- обработчики светодиода ---------- */
+
+static void print_led_state(void)
+{
+    const char *state =
+        led_task_get_state() == LED_STATE_OFF   ? "off"   :
+        led_task_get_state() == LED_STATE_ON    ? "on"    :
+                                                  "blink";
+
+    printf("led: %s, period %u ms\n",
+           state, (unsigned)led_task_get_period_ms());
+}
+
+static void cmd_led_enable(const command_t *c)
+{
+    (void)c;
+    led_task_set_state(LED_STATE_ON);
+    print_led_state();
+}
+
+static void cmd_led_disable(const command_t *c)
+{
+    (void)c;
+    led_task_set_state(LED_STATE_OFF);
+    print_led_state();
+}
+
+static void cmd_led_blink(const command_t *c)
+{
+    (void)c;
+    led_task_set_state(LED_STATE_BLINK);
+    print_led_state();
+}
+
+static void cmd_led_period(const command_t *c)
+{
+    uint32_t period;
+
+    if (c->argc != 1 || !parse_u32(c->argv[0], &period))
+    {
+        printf("error: usage led_period <period_ms>\n");
+        return;
+    }
+
+    if (!led_task_set_period_ms(period))
+    {
+        printf("error: period_ms must be greater than 0\n");
+        return;
+    }
+
+    print_led_state();
+}
+
+/* ---------- остальные обработчики ---------- */
 
 static void cmd_info(const command_t *c)
 {
@@ -116,20 +169,15 @@ static void cmd_calc_pi(const command_t *c)
     printf("time: %llu ms\n", (unsigned long long)(dt / 1000));
 }
 
-/* main_time_exec / main_time_reset — перенеси обработчики из 221-command-time
-   без изменений, добавь к ним help-строки. Ниже — заглушки, замени своими. */
-
 static void cmd_main_time_exec(const command_t *c)
 {
     (void)c;
-    /* TODO: перенести из 221-command-time */
     printf("main_time_exec: not implemented\n");
 }
 
 static void cmd_main_time_reset(const command_t *c)
 {
     (void)c;
-    /* TODO: перенести из 221-command-time */
     printf("main_time_reset: not implemented\n");
 }
 
@@ -142,6 +190,10 @@ static const api_command_t commands[] =
     { "calc_pi",         "calculate pi: calc_pi [terms]",              cmd_calc_pi },
     { "main_time_exec",  "superloop iteration: average and maximum",   cmd_main_time_exec },
     { "main_time_reset", "reset maximum iteration",                    cmd_main_time_reset },
+    { "led_enable",      "turn led on",                                cmd_led_enable },
+    { "led_disable",     "turn led off",                               cmd_led_disable },
+    { "led_blink",       "blink led",                                  cmd_led_blink },
+    { "led_period",      "set blink period: led_period <period_ms>",   cmd_led_period },
 };
 
 #define COMMAND_COUNT (sizeof(commands) / sizeof(commands[0]))
@@ -152,14 +204,12 @@ void api_handle(const command_t *command)
 {
     if (command == NULL) return;
 
-    /* 1. переполнение */
     if (command->truncated)
     {
         printf("error: command longer than 63 characters or 4 arguments\n");
         return;
     }
 
-    /* 2. help — обрабатывается самой api */
     if (strcmp(command->name, "help") == 0)
     {
         printf("%-16s %s\n", "help", "list of commands");
@@ -170,7 +220,6 @@ void api_handle(const command_t *command)
         return;
     }
 
-    /* 3. поиск в таблице */
     for (uint32_t i = 0; i < COMMAND_COUNT; i++)
     {
         if (strcmp(command->name, commands[i].name) == 0)
@@ -180,6 +229,5 @@ void api_handle(const command_t *command)
         }
     }
 
-    /* 4. неизвестная */
     printf("error: unknown command '%s', try help\n", command->name);
 }
