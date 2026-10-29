@@ -7,7 +7,8 @@
 #include "api.h"
 #include "stdio-text-protocol.h"
 #include "led-task.h"
-#include "button-task.h"    
+#include "button-task.h"   
+#include "pi-task.h" 
 
 
 int main(void)
@@ -18,6 +19,7 @@ int main(void)
     stdio_text_protocol_init();
     led_task_init();
     button_task_init();
+    pi_task_init();
 
     bool previous = true;   /* подтяжка к питанию: не нажата = true */
 
@@ -30,7 +32,9 @@ int main(void)
         {
             api_handle(command);
         }
+
         button_task_handle();
         led_task_handle();
+        pi_task_handle();
     }
 }

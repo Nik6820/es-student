@@ -13,6 +13,9 @@
 #include "pico/unique_id.h"
 #include "led-task.h"
 #include "button-task.h"
+#include "pi-task.h"
+
+#define DEFAULT_PI_TERMS 1000000
 
 /* ---------- тип записи таблицы ---------- */
 
@@ -105,6 +108,63 @@ static void cmd_button(const command_t *c)
            (unsigned)button_task_get_press_count());
 }
 
+static void cmd_pi_start(const command_t *c)
+{
+    if (c->argc > 1)
+    {
+        printf("error: usage pi_start [<terms>]\n");
+        return;
+    }
+
+    uint32_t terms = DEFAULT_PI_TERMS;
+    if (c->argc == 1)
+    {
+        if (!parse_u32(c->argv[0], &terms))
+        {
+            printf("error: usage pi_start [<terms>]\n");
+            return;
+        }
+    }
+
+    if (terms == 0)
+    {
+        printf("error: terms must be greater than 0\n");
+        return;
+    }
+
+    if (!pi_task_start(terms))
+    {
+        printf("error: pi is busy\n");
+        return;
+    }
+
+    printf("pi: started, %u terms\n", (unsigned)terms);
+}
+
+static void cmd_pi(const command_t *c)
+{
+    (void)c;
+
+    switch (pi_task_get_state())
+    {
+    case PI_STATE_NOT_STARTED:
+        printf("pi: not started\n");
+        break;
+
+    case PI_STATE_RUNNING:
+        printf("pi: running\n");
+        break;
+
+    case PI_STATE_READY:
+    {
+        double value;
+        uint32_t time_ms;
+        pi_task_get_result(&value, &time_ms);
+        printf("pi: %.9f in %u ms\n", value, (unsigned)time_ms);
+        break;
+    }
+    }
+}
 /* ---------- остальные обработчики ---------- */
 
 static void cmd_info(const command_t *c)
@@ -137,47 +197,6 @@ static void cmd_uptime(const command_t *c)
            (unsigned long long)(time_us_64() / 1000));
 }
 
-static void cmd_calc_pi(const command_t *c)
-{
-    if (c->argc > 1)
-    {
-        printf("error: usage calc_pi [terms]\n");
-        return;
-    }
-
-    uint32_t terms = 1000000;
-    if (c->argc == 1)
-    {
-        if (!parse_u32(c->argv[0], &terms))
-        {
-            printf("error: usage calc_pi [terms]\n");
-            return;
-        }
-    }
-
-    if (terms == 0)
-    {
-        printf("error: terms must be greater than 0\n");
-        return;
-    }
-
-    uint64_t t0 = time_us_64();
-
-    double pi = 0.0;
-    double sign = 1.0;
-    for (uint32_t i = 0; i < terms; i++)
-    {
-        pi += sign / (2.0 * i + 1.0);
-        sign = -sign;
-    }
-    pi *= 4.0;
-
-    uint64_t dt = time_us_64() - t0;
-
-    printf("pi: %.9f\n", pi);
-    printf("time: %llu ms\n", (unsigned long long)(dt / 1000));
-}
-
 static void cmd_main_time_exec(const command_t *c)
 {
     (void)c;
@@ -196,7 +215,6 @@ static const api_command_t commands[] =
 {
     { "info",            "device passport",                            cmd_info },
     { "uptime",          "time since reset",                           cmd_uptime },
-    { "calc_pi",         "calculate pi: calc_pi [terms]",              cmd_calc_pi },
     { "main_time_exec",  "superloop iteration: average and maximum",   cmd_main_time_exec },
     { "main_time_reset", "reset maximum iteration",                    cmd_main_time_reset },
     { "led_enable",      "turn led on",                                cmd_led_enable },
@@ -204,6 +222,8 @@ static const api_command_t commands[] =
     { "led_blink",       "blink led",                                  cmd_led_blink },
     { "led_period",      "set blink period: led_period <period_ms>",   cmd_led_period },
     { "button", "button state and press count", cmd_button },
+    { "pi_start", "start pi calculation: pi_start [terms]", cmd_pi_start },
+    { "pi",       "pi result or state",                    cmd_pi       },
 };
 
 #define COMMAND_COUNT (sizeof(commands) / sizeof(commands[0]))
