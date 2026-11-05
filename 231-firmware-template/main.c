@@ -1,13 +1,16 @@
-#include "pico/stdlib.h"
 #include <stdio.h>
+
 #include "firmware.h"
 #include "logging/log.h"
 #include "profiling/profiling.h"
 #include "stdio-text-protocol/stdio-text-protocol.h"
-#include "api.h"
-#include "led-task.h"
-#include "button-task.h"
-#include "pi-task.h"
+
+#include "platform/platform.h"
+
+#include "api/api.h"
+#include "led-task/led-task.h"
+#include "button-task/button-task.h"
+#include "pi-task/pi-task.h"
 
 typedef enum {
     STOPWATCH_LOOP,
@@ -20,13 +23,13 @@ typedef enum {
 
 int main(void)
 {
-    stdio_init_all();
+    platform_init();                       // stdio + GPIO — внутри
 
     LOG_INF("%s %s\n", FIRMWARE_NAME, FIRMWARE_VERSION);
 
     stdio_text_protocol_init();
     led_task_init();
-    button_task_init();
+    button_task_init(led_task_next_state); // ← передаём, как связывает прибор
     pi_task_init();
 
     profiling_stopwatch_init(STOPWATCH_LOOP,    "loop");
@@ -35,13 +38,14 @@ int main(void)
     profiling_stopwatch_init(STOPWATCH_BUTTON,  "button");
     profiling_stopwatch_init(STOPWATCH_PI,      "pi");
 
-    while (1)
-    {
+    while (1) {
         profiling_start(STOPWATCH_LOOP);
 
         profiling_start(STOPWATCH_COMMAND);
         const command_t *command = stdio_text_protocol_handle();
-        if (command != NULL) api_handle(command);
+        if (command != NULL) {
+            api_handle(command);
+        }
         profiling_stop(STOPWATCH_COMMAND);
 
         profiling_start(STOPWATCH_BUTTON);

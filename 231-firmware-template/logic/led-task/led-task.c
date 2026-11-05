@@ -1,22 +1,23 @@
-#include "led-task.h"
-#include "systime/systime.h"
-#include "pico/stdlib.h"
+#include "led-task/led-task.h"      // свой заголовок первым (П10)
+#include "platform/platform.h"      // единственный, кто знает про железо
+#include "systime/systime.h"        // это не SDK, лежит в libs/ — можно
 
 static led_state_t led_state;
-static uint32_t period_ms;
-static uint64_t last_toggle_us;
+static uint32_t    period_ms;
+static uint64_t    last_toggle_us;
+static bool        led_lit;         // ← замена gpio_get(PICO_DEFAULT_LED_PIN)
 
+// единственное место модуля, где трогаем светодиод
 static void led_set(bool on)
 {
-    gpio_put(PICO_DEFAULT_LED_PIN, on);
+    led_lit = on;
+    platform_led_set(on);
 }
 
 void led_task_init(void)
 {
-    gpio_init(PICO_DEFAULT_LED_PIN);
-    gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
-
     period_ms = 1000;
+    led_set(false);                 // сброс в известное состояние
     led_task_set_state(LED_STATE_BLINK);
 }
 
@@ -64,7 +65,7 @@ void led_task_handle(void)
         break;
     case LED_STATE_BLINK:
         if (systime_period_elapsed(&last_toggle_us, (uint64_t)period_ms * 1000 / 2)) {
-            led_set(!gpio_get(PICO_DEFAULT_LED_PIN));
+            led_set(!led_lit);      // было: led_set(!gpio_get(PICO_DEFAULT_LED_PIN));
         }
         break;
     }

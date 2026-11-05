@@ -1,10 +1,10 @@
-#include "button-task.h"
+#include "button-task/button-task.h"
+#include "platform/platform.h"
 #include "systime/systime.h"
-#include "pico/stdlib.h"
-#include "led-task.h"
 
-#define BUTTON_PIN          15
-#define DEBOUNCE_US         20000
+#include <stddef.h>     /* NULL */
+
+#define DEBOUNCE_US 20000
 
 typedef enum {
     BUTTON_STATE_RELEASED,
@@ -13,69 +13,56 @@ typedef enum {
     BUTTON_STATE_RELEASE_PENDING
 } button_state_t;
 
+static button_task_callback_t on_press_cb;
 static button_state_t button_state;
 static uint64_t transition_us;
 static uint32_t press_count;
 
-static bool button_level_pressed(void)
+void button_task_init(button_task_callback_t on_press)
 {
-    return !gpio_get(BUTTON_PIN);
-}
-
-void button_task_init(void)
-{
-    gpio_init(BUTTON_PIN);
-    gpio_set_dir(BUTTON_PIN, GPIO_IN);
-    gpio_pull_up(BUTTON_PIN);
-
-    button_state = BUTTON_STATE_RELEASED;
+    on_press_cb   = on_press;
+    button_state  = BUTTON_STATE_RELEASED;
     transition_us = 0;
-    press_count = 0;
+    press_count   = 0;
 }
 
 void button_task_handle(void)
 {
-    bool pressed = button_level_pressed();
+    bool pressed    = platform_button_read();
     uint64_t now_us = systime_us();
 
     switch (button_state)
     {
     case BUTTON_STATE_RELEASED:
-        if (pressed)
-        {
+        if (pressed) {
             transition_us = now_us;
-            button_state = BUTTON_STATE_PRESS_PENDING;
+            button_state  = BUTTON_STATE_PRESS_PENDING;
         }
         break;
 
     case BUTTON_STATE_PRESS_PENDING:
-        if (!pressed)
-        {
+        if (!pressed) {
             button_state = BUTTON_STATE_RELEASED;
-        }
-        else if (now_us - transition_us >= DEBOUNCE_US)
-        {
+        } else if (now_us - transition_us >= DEBOUNCE_US) {
             press_count++;
-            led_task_next_state();
+            if (on_press_cb != NULL) {
+                on_press_cb();
+            }
             button_state = BUTTON_STATE_PRESSED;
         }
         break;
 
     case BUTTON_STATE_PRESSED:
-        if (!pressed)
-        {
+        if (!pressed) {
             transition_us = now_us;
-            button_state = BUTTON_STATE_RELEASE_PENDING;
+            button_state  = BUTTON_STATE_RELEASE_PENDING;
         }
         break;
 
     case BUTTON_STATE_RELEASE_PENDING:
-        if (pressed)
-        {
+        if (pressed) {
             button_state = BUTTON_STATE_PRESSED;
-        }
-        else if (now_us - transition_us >= DEBOUNCE_US)
-        {
+        } else if (now_us - transition_us >= DEBOUNCE_US) {
             button_state = BUTTON_STATE_RELEASED;
         }
         break;
