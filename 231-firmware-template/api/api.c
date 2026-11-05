@@ -16,8 +16,6 @@
 
 #define DEFAULT_PI_TERMS 1000000
 
-/* ---------- тип записи таблицы ---------- */
-
 typedef void (*api_callback_t)(const command_t *);
 
 typedef struct
@@ -46,7 +44,7 @@ static bool parse_u32(const char *text, uint32_t *out)
     return true;
 }
 
-/* ---------- обработчики светодиода ---------- */
+/* ---------- светодиод ---------- */
 
 static void print_led_state(void)
 {
@@ -99,6 +97,8 @@ static void cmd_led_period(const command_t *c)
     print_led_state();
 }
 
+/* ---------- кнопка ---------- */
+
 static void cmd_button(const command_t *c)
 {
     (void)c;
@@ -106,6 +106,8 @@ static void cmd_button(const command_t *c)
            button_task_is_pressed() ? "pressed" : "released",
            (unsigned)button_task_get_press_count());
 }
+
+/* ---------- расчёт π ---------- */
 
 static void cmd_pi_start(const command_t *c)
 {
@@ -165,10 +167,13 @@ static void cmd_pi(const command_t *c)
     }
 }
 
+/* ---------- профилирование ---------- */
+
 static void cmd_profiling(const command_t *c)
 {
     (void)c;
 
+#if PROFILING_ENABLED
     for (uint32_t i = 0; i < PROFILING_MAX_STOPWATCHES; i++)
     {
         profiling_result_t r;
@@ -187,6 +192,9 @@ static void cmd_profiling(const command_t *c)
                mean,
                (unsigned)r.max_us);
     }
+#else
+    printf("profiling is disabled in this build\n");
+#endif
 }
 
 static void cmd_profiling_reset(const command_t *c)
@@ -196,7 +204,7 @@ static void cmd_profiling_reset(const command_t *c)
     printf("profiling reset\n");
 }
 
-/* ---------- остальные обработчики ---------- */
+/* ---------- паспорт ---------- */
 
 static void cmd_info(const command_t *c)
 {
@@ -219,10 +227,8 @@ static void cmd_info(const command_t *c)
 static void cmd_uptime(const command_t *c)
 {
     (void)c;
-    printf("uptime: %llu ms\n",
-           (unsigned long long)(time_us_64() / 1000));
+    printf("uptime: %llu ms\n", (unsigned long long)systime_ms());
 }
-
 
 /* ---------- таблица ---------- */
 
@@ -234,11 +240,11 @@ static const api_command_t commands[] =
     { "led_disable",     "turn led off",                               cmd_led_disable },
     { "led_blink",       "blink led",                                  cmd_led_blink },
     { "led_period",      "set blink period: led_period <period_ms>",   cmd_led_period },
-    { "button", "button state and press count", cmd_button },
-    { "pi_start", "start pi calculation: pi_start [terms]", cmd_pi_start },
-    { "pi",       "pi result or state",                    cmd_pi       },
-    { "profiling",       "stopwatch results",  cmd_profiling       },
-    { "profiling_reset", "reset stopwatches",  cmd_profiling_reset },
+    { "button",          "button state and press count",               cmd_button },
+    { "pi_start",        "start pi calculation: pi_start [terms]",     cmd_pi_start },
+    { "pi",              "pi result or state",                         cmd_pi },
+    { "profiling",       "stopwatch results",                          cmd_profiling },
+    { "profiling_reset", "reset stopwatches",                          cmd_profiling_reset },
 };
 
 #define COMMAND_COUNT (sizeof(commands) / sizeof(commands[0]))

@@ -1,5 +1,6 @@
 #include "pi-task.h"
 #include "systime/systime.h"
+#include <stddef.h>
 
 
 /* За член ряда: 4 операции с double, ~585 тактов при 125 МГц = 4,7 мкс.

@@ -11,13 +11,50 @@ static void led_set(bool on)
     gpio_put(PICO_DEFAULT_LED_PIN, on);
 }
 
-/* period_elapsed УДАЛИТЬ — теперь в systime */
+void led_task_init(void)
+{
+    gpio_init(PICO_DEFAULT_LED_PIN);
+    gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
 
-void led_task_init(void) { /* без изменений */ }
-void led_task_set_state(led_state_t state) { /* без изменений */ }
-led_state_t led_task_get_state(void) { /* без изменений */ }
-bool led_task_set_period_ms(uint32_t p) { /* без изменений */ }
-uint32_t led_task_get_period_ms(void) { /* без изменений */ }
+    period_ms = 1000;
+    led_task_set_state(LED_STATE_BLINK);
+}
+
+void led_task_set_state(led_state_t state)
+{
+    led_state = state;
+
+    switch (led_state) {
+    case LED_STATE_OFF:
+        led_set(false);
+        break;
+    case LED_STATE_ON:
+        led_set(true);
+        break;
+    case LED_STATE_BLINK:
+        last_toggle_us = 0;
+        break;
+    }
+}
+
+led_state_t led_task_get_state(void)
+{
+    return led_state;
+}
+
+bool led_task_set_period_ms(uint32_t p)
+{
+    if (p == 0) {
+        return false;
+    }
+    period_ms = p;
+    return true;
+}
+
+uint32_t led_task_get_period_ms(void)
+{
+    return period_ms;
+}
 
 void led_task_handle(void)
 {
@@ -33,4 +70,7 @@ void led_task_handle(void)
     }
 }
 
-void led_task_next_state(void) { /* без изменений */ }
+void led_task_next_state(void)
+{
+    led_task_set_state((led_state_t)((led_state + 1) % 3));
+}
