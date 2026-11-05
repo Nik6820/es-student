@@ -1,11 +1,12 @@
 #pragma once
 
 #include <stdint.h>
-#include "api/api.h"            // берём command_t и api_handler_t отсюда
+#include "api/api.h"            // command_t и api_handler_t
 
 typedef struct {
     const char *name;
-    api_handler_t handler;
+    const char *help;
+    api_handler_t callback;     // ← было handler
 } api_command_t;
 
 extern const api_command_t api_commands[];

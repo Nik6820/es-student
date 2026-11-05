@@ -11,33 +11,25 @@ pico_sdk_init()
 
 add_compile_options(-Wall)
 
-# libs лежит вне папки проекта: второй аргумент задаёт каталог сборки
 add_subdirectory(../libs ${CMAKE_BINARY_DIR}/libs)
 
-# выключатель профилирования: 0 — вызовов секундомеров в образе нет
 target_compile_definitions(profiling PUBLIC
     PROFILING_ENABLED=1
 )
 
-# =====================================================================
-# platform — единственное место в проекте с SDK
-# =====================================================================
 add_library(platform STATIC
     platform/platform.c
 )
-# PUBLIC — папка проекта: через неё logic находит firmware.h,
-# а main — любой свой заголовок по короткому пути
+
 target_include_directories(platform PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
-# pico_stdlib строго PRIVATE: его заголовки не утекают ни в logic, ни в main
+
 target_link_libraries(platform PRIVATE
     pico_stdlib
+    systime
 )
 
-# =====================================================================
-# logic — задачи и api, БЕЗ SDK
-# =====================================================================
 add_library(logic STATIC
     logic/api/api.c
     logic/api/api-callbacks.c
@@ -45,11 +37,11 @@ add_library(logic STATIC
     logic/button-task/button-task.c
     logic/pi-task/pi-task.c
 )
+
 target_include_directories(logic PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/logic
 )
-# ВАЖНО: сюда нельзя добавлять pico_stdlib, hardware_* —
-# проверка 2.3.7 смотрит, что SDK в logic не подключён вовсе
+
 target_link_libraries(logic
     PUBLIC  stdio_text_protocol
     PRIVATE platform
@@ -59,16 +51,14 @@ target_link_libraries(logic
             device
 )
 
-# =====================================================================
-# executable
-# =====================================================================
 add_executable(${PROJECT_NAME}
     main.c
 )
+
 target_link_libraries(${PROJECT_NAME} PRIVATE
     platform
     logic
-    pico_stdlib       # нужен ради boot-кода SDK до main()
+    pico_stdlib
     profiling
     logging
     device

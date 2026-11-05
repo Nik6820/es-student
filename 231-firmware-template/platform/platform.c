@@ -2,7 +2,9 @@
 
 #include "pico/stdlib.h"
 
-// номера выводов знает только этот файл (было в led-task.c и button-task.c)
+#include "systime/systime.h"        // время берём из libs, а не из SDK
+
+// номера выводов знает только этот файл
 #ifndef PLATFORM_LED_PIN
 #define PLATFORM_LED_PIN PICO_DEFAULT_LED_PIN   // 25 на pico
 #endif
@@ -34,5 +36,5 @@ bool platform_button_read(void)
 
 uint64_t platform_time_us(void)
 {
-    return time_us_64();
+    return systime_us();        // ← было time_us_64()
 }
