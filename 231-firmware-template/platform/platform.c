@@ -2,14 +2,14 @@
 
 #include "pico/stdlib.h"
 
-#include "systime/systime.h"        // время берём из libs, а не из SDK
+#include "systime/systime.h"
 
-// номера выводов знает только этот файл
 #ifndef PLATFORM_LED_PIN
-#define PLATFORM_LED_PIN PICO_DEFAULT_LED_PIN   // 25 на pico
+#define PLATFORM_LED_PIN PICO_DEFAULT_LED_PIN
 #endif
+
 #ifndef PLATFORM_BUTTON_PIN
-#define PLATFORM_BUTTON_PIN 15                  // ← ваш пин кнопки
+#define PLATFORM_BUTTON_PIN 15
 #endif
 
 void platform_init(void)
@@ -31,10 +31,10 @@ void platform_led_set(bool on)
 
 bool platform_button_read(void)
 {
-    return gpio_get(PLATFORM_BUTTON_PIN) == 0;   // нажата = 0
+    return gpio_get(PLATFORM_BUTTON_PIN) == 0;
 }
 
 uint64_t platform_time_us(void)
 {
-    return systime_us();        // ← было time_us_64()
+    return systime_us();
 }

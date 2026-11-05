@@ -6,4 +6,4 @@
 void platform_init(void);
 void platform_led_set(bool on);
 bool platform_button_read(void);
-uint64_t platform_time_us(void);      // пригодится pi-task
+uint64_t platform_time_us(void);
