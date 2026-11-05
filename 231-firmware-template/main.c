@@ -1,10 +1,10 @@
 #include "pico/stdlib.h"
 #include <stdio.h>
-#include "log.h"
-#include "device.h"
-#include "profiling.h"
+#include "firmware.h"
+#include "logging/log.h"
+#include "profiling/profiling.h"
+#include "stdio-text-protocol/stdio-text-protocol.h"
 #include "api.h"
-#include "stdio-text-protocol.h"
 #include "led-task.h"
 #include "button-task.h"
 #include "pi-task.h"
@@ -22,7 +22,7 @@ int main(void)
 {
     stdio_init_all();
 
-    LOG_INF("%s %s\n", DEVICE_NAME, FIRMWARE_VERSION);
+    LOG_INF("%s %s\n", FIRMWARE_NAME, FIRMWARE_VERSION);
 
     stdio_text_protocol_init();
     led_task_init();
@@ -41,10 +41,7 @@ int main(void)
 
         profiling_start(STOPWATCH_COMMAND);
         const command_t *command = stdio_text_protocol_handle();
-        if (command != NULL)
-        {
-            api_handle(command);
-        }
+        if (command != NULL) api_handle(command);
         profiling_stop(STOPWATCH_COMMAND);
 
         profiling_start(STOPWATCH_BUTTON);

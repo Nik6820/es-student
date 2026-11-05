@@ -1,6 +1,8 @@
-#include "profiling.h"
+#include "profiling/profiling.h"
 
+#if PROFILING_ENABLED
 #include "pico/stdlib.h"
+#endif
 
 typedef struct
 {
@@ -28,6 +30,7 @@ void profiling_stopwatch_init(uint32_t id, const char *name)
     watches[id].running  = false;
 }
 
+#if PROFILING_ENABLED
 void profiling_start(uint32_t id)
 {
     if (id >= PROFILING_MAX_STOPWATCHES) return;
@@ -52,6 +55,7 @@ void profiling_stop(uint32_t id)
     }
     watches[id].running = false;
 }
+#endif
 
 bool profiling_get(uint32_t id, profiling_result_t *result)
 {

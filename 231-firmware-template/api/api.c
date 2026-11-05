@@ -1,20 +1,18 @@
 #include "api.h"
-#include "device.h"
-#include "log.h"
+#include "firmware.h"
+#include "device/device.h"
+#include "logging/log.h"
+#include "systime/systime.h"
+#include "profiling/profiling.h"
+#include "led-task.h"
+#include "button-task.h"
+#include "pi-task.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
 #include <stdint.h>
-
-#include "pico/stdlib.h"
-#include "pico/version.h"
-#include "pico/unique_id.h"
-#include "led-task.h"
-#include "button-task.h"
-#include "pi-task.h"
-#include "profiling.h"
 
 #define DEFAULT_PI_TERMS 1000000
 
@@ -207,10 +205,10 @@ static void cmd_info(const command_t *c)
     device_info_t info;
     device_get_info(&info);
 
-    printf("name: %s\n",     DEVICE_NAME);
+    printf("name: %s\n",     FIRMWARE_NAME);
     printf("version: %s\n",  FIRMWARE_VERSION);
-    printf("project: %s\n",  DEVICE_PROJECT);
-    printf("repo: %s\n",     DEVICE_REPO);
+    printf("project: %s\n",  FIRMWARE_PROJECT);
+    printf("repo: %s\n",     FIRMWARE_REPO);
     printf("board: %s\n",    info.board);
     printf("serial: %s\n",   info.serial);
     printf("chip: manufacturer 0x%03x, part 0x%04x, revision %u\n",

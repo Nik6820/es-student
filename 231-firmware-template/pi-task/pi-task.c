@@ -1,6 +1,6 @@
 #include "pi-task.h"
+#include "systime/systime.h"
 
-#include "pico/stdlib.h"
 
 /* За член ряда: 4 операции с double, ~585 тактов при 125 МГц = 4,7 мкс.
    Порция 100 членов — 470 мкс, укладывается в 0,5 мс (Н1). */
@@ -41,7 +41,7 @@ bool pi_task_start(uint32_t terms)
     pi_k = 0;
     pi_sum = 0.0;
     pi_sign = 1.0;
-    pi_start_us = time_us_64();
+    pi_start_us = systime_us();
     pi_state = PI_STATE_RUNNING;
     return true;
 }
@@ -70,7 +70,7 @@ void pi_task_handle(void)
     if (pi_k >= pi_n)
     {
         pi_value = 4.0 * pi_sum;
-        pi_time_ms = (uint32_t)((time_us_64() - pi_start_us) / 1000);
+        pi_time_ms = (uint32_t)((systime_us() - pi_start_us) / 1000);
         pi_state = PI_STATE_READY;
     }
 }
