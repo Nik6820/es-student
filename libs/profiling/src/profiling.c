@@ -1,4 +1,4 @@
-#include "include/profiling/profiling.h"
+#include "profiling/profiling.h"
 #include <stddef.h>
 
 #if PROFILING_ENABLED
