@@ -93,3 +93,8 @@ void led_task_next_period(void)
     /* период вне круга — начинаем с первого */
     period_ms = PERIOD_CYCLE[0];
 }
+
+void led_task_blink(void)
+{
+    led_task_set_state(LED_STATE_BLINK);
+}

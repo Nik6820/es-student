@@ -4,7 +4,8 @@
 
 #include <stddef.h>
 
-#define DEBOUNCE_US 20000
+#define DEBOUNCE_US   20000
+#define LONG_PRESS_US 1000000 
 
 typedef enum {
     BUTTON_STATE_RELEASED,
@@ -15,23 +16,30 @@ typedef enum {
 
 typedef struct
 {
-    button_task_callback_t on_press;
+    button_task_callback_t on_short;
+    button_task_callback_t on_long;
     button_state_t         state;
-    uint64_t               transition_us;
+    uint64_t               transition_us;   /* для DEBOUNCE */
+    uint64_t               press_start_us;  /* для LONG_PRESS */
     uint32_t               press_count;
+    bool                   long_reported;   /* о долгом уже сообщили в этом цикле */
     bool                   in_use;
 } button_machine_t;
 
 static button_machine_t buttons[PLATFORM_BUTTON_COUNT];
-
-void button_task_init(platform_button_t button, button_task_callback_t on_press)
+void button_task_init(platform_button_t button,
+                      button_task_callback_t on_short,
+                      button_task_callback_t on_long)
 {
     if (button >= PLATFORM_BUTTON_COUNT) return;
 
-    buttons[button].on_press      = on_press;
+    buttons[button].on_short      = on_short;
+    buttons[button].on_long       = on_long;
     buttons[button].state         = BUTTON_STATE_RELEASED;
     buttons[button].transition_us = 0;
+    buttons[button].press_start_us = 0;
     buttons[button].press_count   = 0;
+    buttons[button].long_reported = false;
     buttons[button].in_use        = true;
 }
 
@@ -56,15 +64,28 @@ static void handle_one(platform_button_t button)
         if (!pressed) {
             m->state = BUTTON_STATE_RELEASED;
         } else if (now_us - m->transition_us >= DEBOUNCE_US) {
+            /* Уровень продержался 20 мс — нажатие подтверждено */
             m->press_count++;
-            if (m->on_press != NULL) {
-                m->on_press();
+            m->press_start_us = now_us;
+            m->long_reported  = false;
+            m->state          = BUTTON_STATE_PRESSED;
+
+            /* Если у кнопки нет долгого действия — короткое сообщаем сразу */
+            if (m->on_long == NULL && m->on_short != NULL) {
+                m->on_short();
             }
-            m->state = BUTTON_STATE_PRESSED;
         }
         break;
 
     case BUTTON_STATE_PRESSED:
+        /* Проверяем долгое нажатие ДО перехода к отпусканию:
+           если сейчас уже 1 с, то это долгое, а не короткое */
+        if (m->on_long != NULL && !m->long_reported &&
+            now_us - m->press_start_us >= LONG_PRESS_US) {
+            m->on_long();
+            m->long_reported = true;
+        }
+
         if (!pressed) {
             m->transition_us = now_us;
             m->state         = BUTTON_STATE_RELEASE_PENDING;
@@ -73,9 +94,15 @@ static void handle_one(platform_button_t button)
 
     case BUTTON_STATE_RELEASE_PENDING:
         if (pressed) {
-            m->state = BUTTON_STATE_PRESSED;
+            m->state = BUTTON_STATE_PRESSED;   /* дребезг, ждём снова */
         } else if (now_us - m->transition_us >= DEBOUNCE_US) {
             m->state = BUTTON_STATE_RELEASED;
+
+            /* Отпускание подтверждено. Если у кнопки есть долгое действие,
+               а о долгом не сообщали — это было короткое нажатие */
+            if (m->on_long != NULL && !m->long_reported && m->on_short != NULL) {
+                m->on_short();
+            }
         }
         break;
     }
