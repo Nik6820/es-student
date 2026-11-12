@@ -12,7 +12,7 @@
 
 void log_prefix(const char *level, const char *function, int line);
 
-#define LOG_INF(...)                                \
+#define LOG_INF(...)                                
     do                                              \
     {                                               \
         if (LOG_LEVEL >= LOG_LEVEL_INF)             \

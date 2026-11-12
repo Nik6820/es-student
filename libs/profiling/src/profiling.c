@@ -1,4 +1,5 @@
-#include "profiling/profiling.h"
+#include "include/profiling/profiling.h"
+#include <stddef.h>
 
 #if PROFILING_ENABLED
 #include "pico/stdlib.h"
